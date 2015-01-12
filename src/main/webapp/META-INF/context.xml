@@ -15,7 +15,7 @@
     <!-- SOLR server -->
     <Parameter name="SOLR_SELECT_BASE_URL" value="http://localhost/solr/biblio/select" />
     
-    <!-- Libero middleware base address -->
+    <!-- Libero driver base address -->
     <Parameter name="LIBERO_DRV_BASE_URI"  value="http://localhost/liberodriver/" />
 
     <!--
@@ -27,7 +27,7 @@
     <!--
         Definiere hier ISIL's der jeweiligen Bibliotheken um den Suchraum im SOLR zu begrenzen.
         Der Parameter Name hat die Form 'ISIL_[Bibiliotheksküerzel]'.
-        Value ist ein JSON Array of Strings.
+        Value is a JSON Array of Strings.
     -->
     <Parameter name="ISIL_UBL"  value="['DE-15','DE-15-292','DE-15-100']" />
     <Parameter name="ISIL_HBK"  value="['DE-540']" />
