@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="true" path="/DaiaLibero">
+
+    <Parameter name="INSTITUTION_NAME" value="Universitätsbibliothek Leipzig" />
+    <Parameter name="INSTITUTION_URL"  value="https://www.ub.uni-leipzig.de/" />
+    <Parameter name="CATALOGUE_URL"    value="https://katalog.ub.uni-leipzig.de/" />
+
+    <!-- Marc BLOB Server -->
+    <Parameter name="MARC_BLOB_SERVER_URL"  value="http://localhost/" />
+    
+    <!-- Path to XSLT File -->
+    <!-- Wird als Resource im ServletContext behandelt -->
+    <Parameter name="XSLT"                 value="/WEB-INF/resources/ub_marc2rdf.xsl" />
+
+    <!-- SOLR server -->
+    <Parameter name="SOLR_SELECT_BASE_URL" value="http://localhost/solr/biblio/select" />
+    
+    <!-- Libero middleware base address -->
+    <Parameter name="LIBERO_DRV_BASE_URI"  value="http://localhost/liberodriver/" />
+
+    <!--
+        Map namespaces to SOLR fields.
+        JSON Map.
+    -->
+    <Parameter name="SOLR_NS_FIELD" value="{'finc':'id','zdb':'zdb','barcode':'barcode','callnumber':'signatur'}" />
+
+    <!--
+        Definiere hier ISIL's der jeweiligen Bibliotheken um den Suchraum im SOLR zu begrenzen.
+        Der Parameter Name hat die Form 'ISIL_[Bibiliotheksküerzel]'.
+        Value ist ein JSON Array of Strings.
+    -->
+    <Parameter name="ISIL_UBL"  value="['DE-15','DE-15-292','DE-15-100']" />
+    <Parameter name="ISIL_HBK"  value="['DE-540']" />
+    <Parameter name="ISIL_HMT"  value="['DE-L152']" />
+    <Parameter name="ISIL_ZIT"  value="['DE-Zi4']" />
+    
+    <Parameter name="DAIA_VERSION"  value="0.5" />
+
+</Context>

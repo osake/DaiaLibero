@@ -1,0 +1,44 @@
+
+ University Leipzig - DAIA Libero Service
+==========================================
+
+List defined namespaces:
+     /namespaces
+
+List defined isil's:
+    /isils
+
+ Title - RDF+XML
+------------------------------------------------------------------------------
+ - URL Schema
+     /title/ISIL/NAMESPACE/ID
+   
+   Namespace can be 'finc','zdb'
+
+   Example:
+     # ISIL 'DE-15'
+     http://HOST:PORT/title/DE-15/finc/0000147412
+     # any ISIL
+     http://HOST:PORT/title/*/finc/0003643801
+     # ZDB
+     http://HOST:PORT/title/DE-15/zdb/3781-3
+
+ Items - DAIA
+------------------------------------------------------------------------------
+ - URL Schema
+     /item/ISIL/NAMESPACE/ID
+
+   Namespace can be 'finc','barcode' or 'callnumber'
+
+   Example:
+     http://HOST:PORT/item/DE-15/finc/0000147412 
+     http://HOST:PORT/item/DE-15/callnumber/Ges.-Schr.302:10,12
+     http://HOST:PORT/item/DE-15/barcode/0005820491
+
+ MARCXML
+------------------------------------------------------------------------------
+
+    /FINCID
+
+   Example:
+     http://HOST:PORT/0000147412
