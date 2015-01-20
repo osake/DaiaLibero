@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2014 Project finc, finc@ub.uni-leipzig.de
- * Leipzig University Library, Project finc
- * http://www.ub.uni-leipzig.de
+ * 2015 Leipzig University Library, http://www.ub.uni-leipzig.de
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * http://opensource.org/licenses/gpl-3.0.html GNU General Public License
- * http://finc.info Project finc
  */
+
 package de.gbv.ws.daia;
 
 /**
