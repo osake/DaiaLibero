@@ -23,27 +23,28 @@
 package de.unileipzig.ub.linkeddata;
 
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.unileipzig.ub.libero.cacheupdater.json.TitleInformation;
-import org.unileipzig.ub.libero.cacheupdater.json.TitleInformationObject;
-import org.unileipzig.ub.libero.cacheupdater.json.TitleItem;
 import org.w3c.dom.Node;
 
 /**
- *
+ * Some helper methods.
+ * 
  * @author <a href="mailto:tsolakidis@ub.uni-leipzig.de">Polichronis Tsolakidis</a>
  */
 public class Helper {
 
-        public static String asXml( Node node) {
+    /**
+     * Convert a DOM node to XML.
+     * 
+     * @param node Node.
+     * @return XML.
+     */
+    public static String asXml( Node node) {
         try {
             TransformerFactory f = TransformerFactory.newInstance();
             Transformer transformer = f.newTransformer();
@@ -59,7 +60,14 @@ public class Helper {
             throw new RuntimeException(ex);
         }
     }
-        
+
+    /**
+     * Join strings.
+     * 
+     * @param data List of strings.
+     * @param delim Delimiter.
+     * @return The joined string.
+     */
     public static String join( Collection<String> data, String delim) {
         StringBuilder sb = new StringBuilder();
         for( String s : data ) {
@@ -68,25 +76,5 @@ public class Helper {
         }
         return sb.toString();
     }
-    
-    public static String join( String[] data, String delim) {
-        return join( Arrays.asList(data), delim);
-    }
-    
-    public static String join( String[] data, char delim) {
-        return join( Arrays.asList(data), new String(new char[]{delim}));
-    }
 
-    public static String getCallNumber( TitleInformationObject to, String recordId ) {
-        Map<String, TitleInformation> tiMap = to.getGetTitleInformation();
-        TitleInformation ti = tiMap.get(recordId);
-        if( ti != null ) {
-            List<TitleItem> titleList = ti.getTitle_items();
-            if( titleList != null && !titleList.isEmpty() ) {
-                TitleItem item = titleList.get(0);
-                return item.getCall_number();
-            }
-        }
-        return null;
-    }
 }
