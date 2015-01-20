@@ -37,14 +37,13 @@ import org.marc4j.MarcXmlWriter;
 import org.marc4j.marc.Record;
 
 /**
- *
- * @author <a href="mailto:tsolakidis@ub.uni-leipzig.de">Polichronis
- * Tsolakidis</a>
+ * MARC to MARCXML,RDF converter.
+ * 
+ * @author <a href="mailto:tsolakidis@ub.uni-leipzig.de">Polichronis Tsolakidis</a>
  */
 public class Caller {
 
     private static final TransformerFactory tFactory = TransformerFactory.newInstance();
-    private static final            Integer BUFFSIZE = 1024 * 8;
 
     /*
      * http://www.stylusstudio.com/xsllist/200306/post60400.html
@@ -88,6 +87,14 @@ public class Caller {
         return sw.toString();
     }
     
+    /**
+     * Convert binary MARC to XML+RDF.
+     * 
+     * @param marcData Binary MARC data.
+     * @param xslt XSLT source.
+     * @return XML+RDF
+     * @throws Exception 
+     */
     public static String toRDF( byte[] marcData, String xslt) throws Exception {
 
         StringWriter rdf = new StringWriter();
@@ -107,6 +114,5 @@ public class Caller {
         }        
         return rdf.toString();
     }
-    
 
 }
