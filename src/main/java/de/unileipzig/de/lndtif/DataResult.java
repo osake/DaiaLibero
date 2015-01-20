@@ -26,7 +26,8 @@ import java.util.Map;
 import org.unileipzig.ub.libero.cacheupdater.json.TitleInformationObject;
 
 /**
- *
+ * A holder for title informations.
+ * 
  * @author <a href="mailto:tsolakidis@ub.uni-leipzig.de">Polichronis Tsolakidis</a>
  */
 public class DataResult {
