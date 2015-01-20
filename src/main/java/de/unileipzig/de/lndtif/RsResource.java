@@ -43,8 +43,12 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -52,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -245,7 +250,7 @@ public class RsResource {
             throw new WebApplicationException(
                 daiaErrorMessage( Response.Status.NOT_FOUND, errStr));
         }
-        // logger.info( gson.toJson(doc) );
+
         String ldrvUrl = sc.getInitParameter( "LIBERO_DRV_BASE_URI" );
         if( ldrvUrl == null || ldrvUrl.isEmpty()) {
             String errStr = "'LIBERO_DRV_BASE_URI' not defined. Check your config!";
@@ -256,11 +261,6 @@ public class RsResource {
 
         String dbName   = getOpacId(isil);
         String recordId = doc.getRecordId();
-        
-        // LIBERO DB Zugriff
-        // TitleInformationObject to = LiberoDriver.getTitleInformation( ldrvUrl, dbName, recordId);
-        // Map availability = LiberoDriver.getAvailability(ldrvUrl, dbName, Arrays.asList(recordId));
-        // Map map = LiberoDriver.getSimpleAvailability(ldrvUrl, dbName, Arrays.asList(recordId));
 
         try {
             Callable<DataResult> callable = new DataResultCallable( ldrvUrl, dbName, recordId);
@@ -275,6 +275,8 @@ public class RsResource {
              
             List<Object> objList = daiaDoc.getMessageOrItem();
             TitleInformationObject to = dataResult.getTo();
+            Map availability = dataResult.getAvailability();
+            Map<String, Map> availabilityList = getAvailabilityList(availability);
             if( to != null ) {
                 Map<String, TitleInformation> ti = to.getGetTitleInformation();
                 if( ti != null ) {
@@ -283,8 +285,21 @@ public class RsResource {
                         TitleInformation value = e.getValue();
                         if( value != null && value.getTitle_items() != null ) {
                             for( TitleItem i : value.getTitle_items()) {
+
                                 String barcode = i.getBarcode();
+
+                                Map avMap = availabilityList.get(barcode);
+                                if( avMap == null || avMap.isEmpty() ) continue;
+                                // Bsp.: "rid": "303873167"
+                                String location = (String) avMap.get("location");
+                                String status   = (String) avMap.get("status");
+                                String branch   = (String) avMap.get("branch");
+                                if( (branch == null || branch.trim().isEmpty()) && location != null && !location.trim().isEmpty()) branch = location;
+
+                                String duedate = getDelay( (String) avMap.get("duedate") );
+
                                 Item item = new Item();
+
                                 item.setId( "finc:" + doc.getId() + ":(" + isil + ")" + barcode );
                                 String call_number = i.getCall_number();
                                 if( call_number != null && !call_number.isEmpty()) {
@@ -292,14 +307,31 @@ public class RsResource {
                                     label.setContent( i.getCall_number() );
                                     item.setLabel( label );
                                 }
-                                item.setHref(sc.getInitParameter("CATALOGUE_URL") + "Record/" + doc.getId());
+                                if( branch != null && !branch.trim().isEmpty()) {
+                                    SimpleElement storage = new SimpleElement();
+                                    storage.setContent( branch );
+                                    item.setStorage( storage );
+                                }
+                                item.setHref(sc.getInitParameter( "CATALOGUE_URL" ) + "Record/" + doc.getId() );
+
+                                // show status string
+                                SimpleElement se = new SimpleElement();
+                                se.setContent(status);
+
                                 List<Availability> list = item.getAvailableOrUnavailable();
                                 if( i.getLending_status() != null && i.getLending_status().contains("In Stock")) {
                                     Item.Available available = new Item.Available();
                                     available.setService( DaiaAvailability.LOAN.toString() );
+                                    if( duedate != null) available.setDelay(duedate);
+                                    List<Object> l = available.getMessageOrLimitation();
+                                    l.add( se );
                                     list.add( available );
-                                } else {
-                                    list.add(getDefaultAvailability());
+                                } else { // default availability
+                                    Item.Unavailable unavailable = new Item.Unavailable();
+                                    if( duedate != null) unavailable.setExpected(duedate);
+                                    List<Object> l = unavailable.getMessageOrLimitation();
+                                    l.add( se );
+                                    list.add(unavailable);
                                 }
                                 objList.add( item );
                             }
@@ -367,7 +399,7 @@ public class RsResource {
     /**
      * List of mapped ISIL's.
      * 
-     * @return List of mapped ISIL's.
+     * @return List of mapped ISILs.
      */
     @GET
     @Path("/isils")
@@ -471,14 +503,10 @@ public class RsResource {
             }
         }
     }
-    
-    private static Availability getDefaultAvailability() {
-        Item.Unavailable unavailable = new Item.Unavailable();
-        return unavailable;
-    }
-    
+
     /**
-     * Get the MARC blob service url from the configuration.
+     * Fetches the MARC blob service url from the configuration.
+     * 
      * @return MARC blob service url string.
      */
     private String getMarcBlobUrl() throws Exception {
@@ -494,7 +522,7 @@ public class RsResource {
     }
     
     /**
-     * Get the MARC blob from the MARC blob service.
+     * Fetches a MARC blob from the MARC blob service.
      *
      * @param fincId finc ID.
      * @return MARC blob.
@@ -565,4 +593,61 @@ public class RsResource {
         Response response = builder.build();
         return response;
     }
+    
+    private Map<String,Map> getAvailabilityList( Map availability ) {
+        
+        HashMap m = new HashMap();
+        
+        if( availability != null && !availability.isEmpty()) {
+            Object avObj = availability.get("getAvailability");
+            if( avObj != null ) {
+                List<Map> avList = (List<Map>) avObj;
+                if( !avList.isEmpty() ) {
+                    for( Map map : avList ) {
+                        String bc = (String) map.get("barcode");
+                        if( bc != null ) {
+                            m.put( bc, map);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return m;
+    }
+    
+    private String getDelay( String duedate ) {
+
+        if( duedate != null && !duedate.trim().isEmpty()) {
+            try {
+                Date  due = new SimpleDateFormat("dd.MM.yyyy").parse(duedate);
+                GregorianCalendar dueCal = new GregorianCalendar(TimeZone.getTimeZone("Europe/Berlin"));
+                dueCal.setTime(due);
+                dueCal.set( Calendar.HOUR, 0);
+                dueCal.set( Calendar.MINUTE, 0);
+                dueCal.set( Calendar.SECOND, 0);
+                dueCal.set( Calendar.MILLISECOND, 0);
+                GregorianCalendar nowCal = new GregorianCalendar(TimeZone.getTimeZone("Europe/Berlin"));
+                Date  now = new Date();
+                nowCal.setTime(now);
+                nowCal.set( Calendar.HOUR, 0);
+                nowCal.set( Calendar.MINUTE, 0);
+                nowCal.set( Calendar.SECOND, 0);
+                nowCal.set( Calendar.MILLISECOND, 0);
+                Integer days = 0;
+                for( Calendar dc = nowCal; dc.before(dueCal); dc.add( Calendar.DATE, 1) ) {
+                    days++;
+                }
+                for( Calendar dc = dueCal; dc.before(nowCal); dc.add( Calendar.DATE, 1) ) {
+                    days--;
+                }
+                if( days != 0 ) return "P" + days + "D";
+            } catch( ParseException e ) {
+                logger.fatal( duedate, e );
+            } 
+        }
+        
+        return null;
+    }
+
 }

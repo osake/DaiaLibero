@@ -23,7 +23,6 @@
 package de.unileipzig.de.lndtif;
 
 import de.unileipzig.de.lbdrv.LiberoDriver;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -67,7 +66,7 @@ public class DataResultCallable implements Callable<DataResult> {
             @Override
             public void run() {
                 try {
-                    dataResult.setAvailability( LiberoDriver.getAvailability( url, dbName, Arrays.asList(recordId)) );
+                    dataResult.setAvailability( LiberoDriver.getAvailability( url, dbName, recordId) );
                 } catch (Exception ex) {
                     logger.log(Level.FATAL, null, ex);
                 }

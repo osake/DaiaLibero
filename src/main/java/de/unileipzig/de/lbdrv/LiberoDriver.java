@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2014 Project finc, finc@ub.uni-leipzig.de
- * Leipzig University Library, Project finc
- * http://www.ub.uni-leipzig.de
+ * 2015 Leipzig University Library, http://www.ub.uni-leipzig.de
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * http://opensource.org/licenses/gpl-3.0.html GNU General Public License
- * http://finc.info Project finc
  */
 package de.unileipzig.de.lbdrv;
 
@@ -31,14 +28,23 @@ import java.util.Map;
 import org.unileipzig.ub.libero.cacheupdater.json.TitleInformationObject;
 
 /**
- * http://139.18.19.239:8080/solr/biblio/select?q=id:0002345433&wt=json&fl=fullrecord,id,record_id,signatur,barcode,itemdata
+ * Manages connection to the Liberodriver.
  * 
  * @author <a href="mailto:tsolakidis@ub.uni-leipzig.de">Polichronis Tsolakidis</a>
  */
 public class LiberoDriver {
 
-    private static final     Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     
+    /**
+     * Fetches the title information about a record id.
+     * 
+     * @param baseUrl Liberodriver base URL e.G. <i>http://localhost:8080/liberodriver/</i>.
+     * @param dbName Library id.
+     * @param ppn Record id.
+     * @return Title information or <i>null</i> if it not found.
+     * @throws Exception 
+     */
     public static TitleInformationObject getTitleInformation( String baseUrl, String dbName, String ppn) throws Exception {
         StringBuilder sb = new StringBuilder();
         sb.append( baseUrl ).append( baseUrl.endsWith("/") ? "" : "/" )
@@ -66,19 +72,13 @@ public class LiberoDriver {
     /**
      * Gets the availability of a list of PPN.
      * 
-     * @param baseUrl Liberoding URL
+     * @param baseUrl Liberoddriver URL e.G. <i>http://localhost:8080/liberodriver/</i>.
      * @param dbName Library id
-     * @param rids List of PPN
-     * @return Avalability map.
+     * @param ppn List of PPN.
+     * @return Avalability map or <i>null</i> if not found.
      * @throws Exception 
      */
-    public static Map getAvailability( String baseUrl, String dbName, List<String> rids) throws Exception {
-        
-        StringBuilder ridBuilder = new StringBuilder();
-        for( String s : rids ) {
-            ridBuilder.append( ridBuilder.length() > 0 ? "," : "")
-                .append(s);
-        }
+    public static Map getAvailability( String baseUrl, String dbName, String ppn) throws Exception {
 
         StringBuilder sb = new StringBuilder();
         sb.append( baseUrl ).append( baseUrl.endsWith("/") ? "" : "/" )
@@ -90,7 +90,7 @@ public class LiberoDriver {
             .append("&")
             .append("recordId")
             .append("=")
-            .append(URLEncoder.encode(ridBuilder.toString(), "UTF-8"));
+            .append(URLEncoder.encode( ppn, "UTF-8"));
         byte[] buff = ApHttpClient.getContent( sb.toString() );
         String content = new String( buff, "UTF-8");
         if( !content.trim().isEmpty()) {
@@ -100,6 +100,15 @@ public class LiberoDriver {
         return null;
     }
     
+    /**
+     * Fetches the simple availability of a list of PPN.
+     * 
+     * @param baseUrl Liberoddriver URL e.G. <i>http://localhost:8080/liberodriver/</i>.
+     * @param dbName Library id.
+     * @param recordIds List of PPN.
+     * @return  Avalability map or <i>null</i> if not found.
+     * @throws Exception 
+     */
     public static Map getSimpleAvailability( String baseUrl, String dbName, List<String> recordIds) throws Exception {
         
         StringBuilder ridBuilder = new StringBuilder();
